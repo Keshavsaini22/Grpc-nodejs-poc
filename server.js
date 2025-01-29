@@ -1,9 +1,5 @@
-const dotenv = require('dotenv');
-dotenv.config();
-
 const grpc = require('@grpc/grpc-js');
 const protoLoader = require("@grpc/proto-loader")
-
 
 const options = {
     keepCase: true,
@@ -17,6 +13,9 @@ const packageDef = protoLoader.loadSync("todo.proto", options);
 
 const grpcObject = grpc.loadPackageDefinition(packageDef);
 const todoPackage = grpcObject.todoPackage;
+
+
+
 
 const todos = []
 
@@ -34,6 +33,18 @@ function createTodo(call, callback) {
     callback(null, todoItem);
 }
 
+function readTodos(call, callback) {
+    callback(null, { "items": todos })
+}
+
+function readTodosStream(call, callback) {
+
+    todos.forEach(t => call.write(t));
+    call.end();
+}
+
+
+
 
 function getServer() {
     const server = new grpc.Server();
@@ -42,8 +53,8 @@ function getServer() {
         {
             "sayHello": sayHello,
             "createTodo": createTodo,
-            // "readTodos": readTodos,
-            // "readTodosStream": readTodosStream
+            "readTodos": readTodos,
+            "readTodosStream": readTodosStream
         });
     return server;
 }
